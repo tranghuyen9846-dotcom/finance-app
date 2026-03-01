@@ -1,5 +1,5 @@
 -- ============================================================
--- SQL Script cho Supabase: Tạo 4 bảng + RLS + Dữ liệu mẫu
+-- SQL Script cho Supabase: Tạo 6 bảng + RLS + Dữ liệu mẫu
 -- Chạy script này trong Supabase → SQL Editor → New Query → Run
 -- ============================================================
 
@@ -47,6 +47,30 @@ CREATE TABLE IF NOT EXISTS savings_goals (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 5. BẢNG KHOẢN VAY / NỢ (obligations)
+CREATE TABLE IF NOT EXISTS obligations (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    type TEXT NOT NULL CHECK (type IN ('ChoVay', 'No')),
+    person_name TEXT NOT NULL,
+    amount DOUBLE PRECISION NOT NULL,
+    date_start DATE NOT NULL DEFAULT CURRENT_DATE,
+    date_deadline DATE,
+    note TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'collected', 'repaid')),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 6. BẢNG NGÂN SÁCH THEO DANH MỤC (budgets)
+CREATE TABLE IF NOT EXISTS budgets (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    category_id UUID REFERENCES categories(id) ON DELETE CASCADE,
+    monthly_limit DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(user_id, category_id)
+);
+
 -- ============================================================
 -- BẬT ROW LEVEL SECURITY (RLS) - Mỗi user chỉ thấy dữ liệu mình
 -- ============================================================
@@ -55,6 +79,8 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE savings_goals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE obligations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
 
 -- Policy cho categories
 CREATE POLICY "Users can view own categories" ON categories
@@ -94,6 +120,26 @@ CREATE POLICY "Users can insert own savings_goals" ON savings_goals
 CREATE POLICY "Users can update own savings_goals" ON savings_goals
     FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own savings_goals" ON savings_goals
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Policy cho obligations
+CREATE POLICY "Users can view own obligations" ON obligations
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own obligations" ON obligations
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own obligations" ON obligations
+    FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own obligations" ON obligations
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Policy cho budgets
+CREATE POLICY "Users can view own budgets" ON budgets
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own budgets" ON budgets
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own budgets" ON budgets
+    FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own budgets" ON budgets
     FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================================

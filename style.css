@@ -849,3 +849,358 @@ body {
         flex: 1;
     }
 }
+
+/* ============================================================
+   SUB-TABS
+   ============================================================ */
+
+.sub-tabs {
+    margin-bottom: 16px;
+}
+
+.sub-content {
+    animation: fadeIn 0.25s ease;
+}
+
+.sub-content:not(.active) {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   OBLIGATION CARDS
+   ============================================================ */
+
+.obligations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.obl-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px;
+    border-left: 3px solid var(--accent);
+    transition: all 0.2s;
+}
+
+.obl-card.overdue {
+    border-left-color: #ff6b6b;
+    background: rgba(255, 71, 87, 0.06);
+}
+
+.obl-card.resolved {
+    opacity: 0.55;
+    border-left-color: #00d68f;
+}
+
+.obl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.obl-person {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e0e0ff;
+}
+
+.obl-amount {
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.obl-amount.income { color: #00d68f; }
+.obl-amount.expense { color: #ff6b6b; }
+
+.obl-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 12px;
+    color: #8888aa;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.overdue-badge {
+    color: #ff6b6b;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.obl-note {
+    font-size: 13px;
+    color: #a0a0c0;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+.obl-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.obl-status {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    flex: 1;
+}
+
+.obl-status.pending {
+    color: #667eea;
+    background: rgba(102, 126, 234, 0.12);
+}
+
+.obl-status.collected,
+.obl-status.repaid {
+    color: #00d68f;
+    background: rgba(0, 214, 143, 0.1);
+}
+
+/* ============================================================
+   FILTER BUTTONS
+   ============================================================ */
+
+.filter-group-inline {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.btn-filter {
+    padding: 6px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    background: transparent;
+    color: #8888aa;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-filter.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.kpi-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    margin-top: 16px;
+}
+
+/* ============================================================
+   ANOMALY ALERTS
+   ============================================================ */
+
+.anomaly-section {
+    margin-bottom: 16px;
+}
+
+.anomaly-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.anomaly-card {
+    background: rgba(255, 71, 87, 0.08);
+    border-left: 3px solid #ff6b6b;
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.anomaly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.anomaly-cat {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0ff;
+}
+
+.anomaly-change {
+    font-size: 12px;
+    color: #ff6b6b;
+    font-weight: 600;
+}
+
+.anomaly-amounts {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #a0a0c0;
+}
+
+.anomaly-amounts strong {
+    color: #ff6b6b;
+}
+
+/* ============================================================
+   BUDGET STATUS (Dashboard)
+   ============================================================ */
+
+.budget-section {
+    margin-bottom: 16px;
+}
+
+.budget-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.budget-item {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.budget-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #e0e0ff;
+    margin-bottom: 8px;
+}
+
+.budget-bar-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.budget-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.budget-bar-fill.ok {
+    background: linear-gradient(90deg, #00d68f, #00b37a);
+}
+
+.budget-bar-fill.warning {
+    background: linear-gradient(90deg, #ffd93d, #f0c000);
+}
+
+.budget-bar-fill.over {
+    background: linear-gradient(90deg, #ff6b6b, #e05555);
+}
+
+.budget-over-text {
+    font-size: 11px;
+    color: #ff6b6b;
+    font-weight: 600;
+    margin-top: 4px;
+    display: block;
+}
+
+/* ============================================================
+   HEALTH SCORE
+   ============================================================ */
+
+.health-score-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.health-main {
+    margin-bottom: 16px;
+}
+
+.health-gauge {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.health-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(#667eea 0deg, rgba(255,255,255,0.08) 0deg);
+    position: relative;
+}
+
+.health-circle::after {
+    content: '';
+    position: absolute;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: #1a1a3e;
+    top: 11px;
+    left: 11px;
+}
+
+.health-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    position: relative;
+    z-index: 1;
+    line-height: 1;
+}
+
+.health-grade {
+    font-size: 14px;
+    font-weight: 700;
+    color: #a0a0c0;
+    position: relative;
+    z-index: 1;
+}
+
+.health-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #a0a0c0;
+}
+
+.health-breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.health-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #8888aa;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.health-item span:last-child {
+    font-weight: 700;
+    color: #e0e0ff;
+}

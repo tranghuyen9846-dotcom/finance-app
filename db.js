@@ -261,6 +261,201 @@ async function deleteSavingsGoal(goalId) {
 }
 
 // ============================================================
+//  OBLIGATIONS (Khoản cho vay / Nợ)
+// ============================================================
+
+async function addObligation(type, personName, amount, dateStart, dateDeadline = null, note = '') {
+    const user = await getUser();
+    const { data, error } = await initSupabase().from('obligations').insert({
+        user_id: user.id, type, person_name: personName, amount,
+        date_start: dateStart || new Date().toISOString().slice(0, 10),
+        date_deadline: dateDeadline, note
+    }).select();
+    if (error) throw error;
+    return data;
+}
+
+async function getObligations(typeFilter = null, statusFilter = null) {
+    let query = initSupabase().from('obligations').select('*')
+        .order('date_deadline', { ascending: true, nullsFirst: false });
+    if (typeFilter) query = query.eq('type', typeFilter);
+    if (statusFilter) query = query.eq('status', statusFilter);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+}
+
+async function updateObligationStatus(id, status) {
+    const { error } = await initSupabase().from('obligations').update({ status }).eq('id', id);
+    if (error) throw error;
+}
+
+async function deleteObligation(id) {
+    const { error } = await initSupabase().from('obligations').delete().eq('id', id);
+    if (error) throw error;
+}
+
+async function getObligationSummary() {
+    const obligations = await getObligations(null, 'pending');
+    let totalLoans = 0, totalDebts = 0;
+    obligations.forEach(o => {
+        if (o.type === 'ChoVay') totalLoans += o.amount;
+        else totalDebts += o.amount;
+    });
+    return { totalLoans, totalDebts, items: obligations };
+}
+
+// ============================================================
+//  BUDGETS (Ngân sách theo danh mục)
+// ============================================================
+
+async function getBudgets() {
+    const { data, error } = await initSupabase()
+        .from('budgets').select('*, categories(name, icon, type)')
+        .order('created_at');
+    if (error) throw error;
+    return data || [];
+}
+
+async function setBudget(categoryId, monthlyLimit) {
+    const user = await getUser();
+    const { data, error } = await initSupabase().from('budgets').upsert({
+        user_id: user.id, category_id: categoryId, monthly_limit: monthlyLimit
+    }, { onConflict: 'user_id,category_id' }).select();
+    if (error) throw error;
+    return data;
+}
+
+async function deleteBudget(id) {
+    const { error } = await initSupabase().from('budgets').delete().eq('id', id);
+    if (error) throw error;
+}
+
+async function getBudgetStatus(month, year) {
+    const budgets = await getBudgets();
+    const expenses = await getExpenseByCategory(month, year);
+
+    const expenseMap = {};
+    expenses.forEach(e => { expenseMap[e.label] = e.amount; });
+
+    return budgets.filter(b => b.categories?.type === 'Chi').map(b => {
+        const label = `${b.categories?.icon} ${b.categories?.name}`;
+        const spent = expenseMap[label] || 0;
+        const percent = b.monthly_limit > 0 ? Math.round((spent / b.monthly_limit) * 100) : 0;
+        return {
+            id: b.id,
+            categoryName: b.categories?.name || 'Không rõ',
+            icon: b.categories?.icon || '📁',
+            limit: b.monthly_limit,
+            spent,
+            percent,
+            isWarning: percent >= 80 && percent < 100,
+            isOver: percent >= 100
+        };
+    });
+}
+
+// ============================================================
+//  ANOMALY DETECTION (Phát hiện chi bất thường)
+// ============================================================
+
+async function getSpendingAnomalies(month, year) {
+    const currentExpenses = await getExpenseByCategory(month, year);
+    let prevMonth = month - 1, prevYear = year;
+    if (prevMonth === 0) { prevMonth = 12; prevYear = year - 1; }
+    const previousExpenses = await getExpenseByCategory(prevMonth, prevYear);
+
+    const prevMap = {};
+    previousExpenses.forEach(e => { prevMap[e.label] = e.amount; });
+
+    const anomalies = [];
+    currentExpenses.forEach(curr => {
+        const prev = prevMap[curr.label] || 0;
+        if (prev > 0) {
+            const changePercent = ((curr.amount - prev) / prev) * 100;
+            if (changePercent > 30) {
+                anomalies.push({
+                    label: curr.label, currentAmount: curr.amount,
+                    previousAmount: prev, changePercent: Math.round(changePercent)
+                });
+            }
+        } else if (curr.amount > 0) {
+            anomalies.push({
+                label: curr.label, currentAmount: curr.amount,
+                previousAmount: 0, changePercent: null
+            });
+        }
+    });
+
+    return anomalies.sort((a, b) => (b.changePercent || 999) - (a.changePercent || 999));
+}
+
+// ============================================================
+//  FINANCIAL HEALTH SCORE (Điểm sức khỏe tài chính)
+// ============================================================
+
+async function calculateHealthScore(month, year) {
+    // 1. Tỷ lệ tiết kiệm (30 điểm)
+    const summary = await getSummary(month, year);
+    let savingsScore = 0;
+    if (summary.income > 0) {
+        const savingsRate = (summary.income - summary.expense) / summary.income;
+        savingsScore = Math.max(0, Math.min(30, Math.round(savingsRate * 30)));
+    }
+
+    // 2. Ngân sách (25 điểm)
+    let budgetScore = 25; // default full if no budgets set
+    try {
+        const budgetStatus = await getBudgetStatus(month, year);
+        if (budgetStatus.length > 0) {
+            const withinBudget = budgetStatus.filter(b => !b.isOver).length;
+            budgetScore = Math.round((withinBudget / budgetStatus.length) * 25);
+        }
+    } catch (e) { /* ignore */ }
+
+    // 3. Nợ / Cho vay (25 điểm)
+    let debtScore = 25; // default full if no obligations
+    try {
+        const oblSummary = await getObligationSummary();
+        const totalPending = oblSummary.totalLoans + oblSummary.totalDebts;
+        if (totalPending > 0) {
+            // Nợ ít hơn cho vay = điểm cao
+            const debtRatio = oblSummary.totalDebts / totalPending;
+            debtScore = Math.round((1 - debtRatio) * 25);
+        }
+    } catch (e) { /* ignore */ }
+
+    // 4. Tiến độ mục tiêu tiết kiệm (20 điểm)
+    let goalsScore = 0;
+    try {
+        const goals = await getSavingsGoals();
+        if (goals.length > 0) {
+            const totalProgress = goals.reduce((sum, g) => {
+                return sum + Math.min(g.current_amount / g.target_amount, 1);
+            }, 0);
+            goalsScore = Math.round((totalProgress / goals.length) * 20);
+        }
+    } catch (e) { /* ignore */ }
+
+    const score = savingsScore + budgetScore + debtScore + goalsScore;
+    let grade = 'F';
+    if (score >= 90) grade = 'A';
+    else if (score >= 75) grade = 'B';
+    else if (score >= 60) grade = 'C';
+    else if (score >= 40) grade = 'D';
+
+    return {
+        score, grade,
+        details: {
+            savings: { score: savingsScore, max: 30 },
+            budget: { score: budgetScore, max: 25 },
+            debt: { score: debtScore, max: 25 },
+            goals: { score: goalsScore, max: 20 }
+        }
+    };
+}
+
+// ============================================================
 //  UTILS
 // ============================================================
 

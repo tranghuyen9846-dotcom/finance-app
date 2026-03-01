@@ -4,6 +4,7 @@
 
 let pieChart = null;
 let barChart = null;
+let anomalyChart = null;
 
 const CHART_COLORS = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
@@ -139,4 +140,94 @@ async function renderBarChart(year) {
             },
         },
     });
+}
+
+// ============================================================
+//  ANOMALY COMPARISON CHART (Horizontal bar)
+// ============================================================
+
+async function renderAnomalyChart(month, year) {
+    const ctx = document.getElementById('anomaly-chart');
+    const emptyMsg = document.getElementById('anomaly-chart-empty');
+    if (!ctx) return;
+
+    try {
+        const anomalies = await getSpendingAnomalies(month, year);
+
+        if (anomalyChart) {
+            anomalyChart.destroy();
+            anomalyChart = null;
+        }
+
+        if (!anomalies || anomalies.length === 0) {
+            ctx.style.display = 'none';
+            if (emptyMsg) emptyMsg.style.display = 'block';
+            return;
+        }
+
+        ctx.style.display = 'block';
+        if (emptyMsg) emptyMsg.style.display = 'none';
+
+        anomalyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: anomalies.map(a => a.label),
+                datasets: [
+                    {
+                        label: 'Tháng trước',
+                        data: anomalies.map(a => a.previousAmount),
+                        backgroundColor: 'rgba(160, 160, 192, 0.5)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Tháng này',
+                        data: anomalies.map(a => a.currentAmount),
+                        backgroundColor: 'rgba(255, 107, 107, 0.7)',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                ],
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#a0a0c0',
+                            font: { family: 'Inter', size: 12 },
+                            usePointStyle: true,
+                            pointStyleWidth: 10,
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw)}`,
+                        },
+                    },
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#6b6b8d',
+                            font: { size: 11 },
+                            callback: (val) => val >= 1000000 ? (val / 1000000).toFixed(1) + 'M' : val >= 1000 ? (val / 1000).toFixed(0) + 'K' : val,
+                        },
+                        grid: { color: 'rgba(255,255,255,0.04)' },
+                    },
+                    y: {
+                        ticks: { color: '#6b6b8d', font: { size: 11 } },
+                        grid: { display: false },
+                    },
+                },
+            },
+        });
+    } catch (err) {
+        console.error('Anomaly chart error:', err);
+        ctx.style.display = 'none';
+        if (emptyMsg) emptyMsg.style.display = 'block';
+    }
 }

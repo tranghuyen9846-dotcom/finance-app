@@ -73,6 +73,37 @@
                     </div>
                 </div>
 
+                <!-- Health Score -->
+                <div id="health-score-section" class="health-score-card" style="display:none;">
+                    <div class="health-main">
+                        <div class="health-gauge">
+                            <div id="health-circle" class="health-circle">
+                                <span id="health-score-num" class="health-num">0</span>
+                                <span id="health-grade" class="health-grade">F</span>
+                            </div>
+                        </div>
+                        <div class="health-label">Sức Khỏe Tài Chính</div>
+                    </div>
+                    <div class="health-breakdown">
+                        <div class="health-item">
+                            <span>💰 Tiết kiệm</span>
+                            <span id="hs-savings">0/30</span>
+                        </div>
+                        <div class="health-item">
+                            <span>📊 Ngân sách</span>
+                            <span id="hs-budget">0/25</span>
+                        </div>
+                        <div class="health-item">
+                            <span>🤝 Nợ/Vay</span>
+                            <span id="hs-debt">0/25</span>
+                        </div>
+                        <div class="health-item">
+                            <span>🎯 Mục tiêu</span>
+                            <span id="hs-goals">0/20</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- KPI Cards -->
                 <div class="kpi-grid">
                     <div class="kpi-card kpi-income">
@@ -87,6 +118,18 @@
                         <span class="kpi-label">Số Dư</span>
                         <span id="kpi-balance" class="kpi-value">0 đ</span>
                     </div>
+                </div>
+
+                <!-- Anomaly Alerts -->
+                <div id="anomaly-alerts" class="anomaly-section" style="display:none;">
+                    <h3 class="section-subtitle">⚠️ Chi Tiêu Bất Thường</h3>
+                    <div id="anomaly-list" class="anomaly-list"></div>
+                </div>
+
+                <!-- Budget Status -->
+                <div id="budget-status" class="budget-section" style="display:none;">
+                    <h3 class="section-subtitle">📊 Ngân Sách Tháng Này</h3>
+                    <div id="budget-list" class="budget-list"></div>
                 </div>
 
                 <!-- Recent Transactions -->
@@ -153,25 +196,86 @@
                         <h3>Thu vs Chi Theo Tháng</h3>
                         <canvas id="bar-chart"></canvas>
                     </div>
+                    <div class="chart-card">
+                        <h3>⚠️ So Sánh Chi Bất Thường</h3>
+                        <canvas id="anomaly-chart"></canvas>
+                        <p id="anomaly-chart-empty" class="empty-state" style="display:none;">Không có chi tiêu bất thường</p>
+                    </div>
                 </div>
             </section>
 
-            <!-- TAB 4: SAVINGS -->
+            <!-- TAB 4: TÀI SẢN (Savings + Obligations) -->
             <section id="tab-savings" class="tab-content">
-                <h2>Mục Tiêu Tiết Kiệm</h2>
-                <div class="form-card compact">
-                    <div class="input-row">
-                        <input type="text" id="goal-name" placeholder="Tên mục tiêu" class="flex-2">
-                        <input type="number" id="goal-target" placeholder="Mục tiêu (VNĐ)" inputmode="numeric"
-                            class="flex-2">
+                <h2>Tài Sản</h2>
+
+                <!-- Sub-tab selector -->
+                <div class="segmented-control sub-tabs">
+                    <button class="seg-btn active" onclick="switchSubTab('savings-sub', this)">🎯 Tiết Kiệm</button>
+                    <button class="seg-btn" onclick="switchSubTab('obligations-sub', this)">🤝 Cho Vay / Nợ</button>
+                </div>
+
+                <!-- Sub-tab 1: Savings (existing) -->
+                <div id="savings-sub" class="sub-content active">
+                    <div class="form-card compact">
+                        <div class="input-row">
+                            <input type="text" id="goal-name" placeholder="Tên mục tiêu" class="flex-2">
+                            <input type="number" id="goal-target" placeholder="Mục tiêu (VNĐ)" inputmode="numeric" class="flex-2">
+                        </div>
+                        <div class="input-row">
+                            <input type="date" id="goal-deadline" class="flex-2">
+                            <button class="btn btn-primary flex-1" onclick="addGoal()">🎯 Tạo</button>
+                        </div>
                     </div>
-                    <div class="input-row">
-                        <input type="date" id="goal-deadline" class="flex-2">
-                        <button class="btn btn-primary flex-1" onclick="addGoal()">🎯 Tạo</button>
+                    <div id="goals-list" class="goals-list">
+                        <p class="empty-state">Đang tải...</p>
                     </div>
                 </div>
-                <div id="goals-list" class="goals-list">
-                    <p class="empty-state">Đang tải...</p>
+
+                <!-- Sub-tab 2: Obligations -->
+                <div id="obligations-sub" class="sub-content" style="display:none;">
+                    <div class="segmented-control">
+                        <button class="seg-btn active" data-value="ChoVay" onclick="setObligationType(this)">💸 Cho Vay</button>
+                        <button class="seg-btn" data-value="No" onclick="setObligationType(this)">💳 Nợ</button>
+                    </div>
+                    <input type="hidden" id="obl-type" value="ChoVay">
+
+                    <div class="form-card compact">
+                        <div class="input-group">
+                            <label>Tên người</label>
+                            <input type="text" id="obl-person" placeholder="VD: Anh Minh">
+                        </div>
+                        <div class="input-row">
+                            <input type="number" id="obl-amount" placeholder="Số tiền (VNĐ)" inputmode="numeric" class="flex-2">
+                            <input type="date" id="obl-date-start" class="flex-2">
+                        </div>
+                        <div class="input-row">
+                            <input type="date" id="obl-deadline" class="flex-2">
+                            <input type="text" id="obl-note" placeholder="Ghi chú" class="flex-2">
+                        </div>
+                        <button class="btn btn-primary btn-full" onclick="submitObligation()">✅ Thêm</button>
+                        <p id="obl-result" class="result-msg"></p>
+                    </div>
+
+                    <div class="kpi-grid kpi-grid-2">
+                        <div class="kpi-card kpi-expense">
+                            <span class="kpi-label">Tổng Cho Vay</span>
+                            <span id="kpi-loans" class="kpi-value">0 đ</span>
+                        </div>
+                        <div class="kpi-card kpi-income">
+                            <span class="kpi-label">Tổng Nợ</span>
+                            <span id="kpi-debts" class="kpi-value">0 đ</span>
+                        </div>
+                    </div>
+
+                    <h3 class="section-subtitle">Danh Sách</h3>
+                    <div class="filter-group-inline">
+                        <button class="btn-filter active" onclick="filterObligations('all', this)">Tất cả</button>
+                        <button class="btn-filter" onclick="filterObligations('pending', this)">Chưa xong</button>
+                        <button class="btn-filter" onclick="filterObligations('done', this)">Đã xong</button>
+                    </div>
+                    <div id="obligations-list" class="obligations-list">
+                        <p class="empty-state">Chưa có khoản nào.</p>
+                    </div>
                 </div>
             </section>
 
@@ -209,6 +313,17 @@
                     <div id="acc-list" class="item-list"></div>
                 </div>
 
+                <!-- Ngân sách -->
+                <div class="settings-section">
+                    <h3>📊 Ngân Sách Danh Mục</h3>
+                    <div class="input-row">
+                        <select id="budget-cat" class="flex-2"></select>
+                        <input type="number" id="budget-limit" placeholder="Giới hạn/tháng" inputmode="numeric" class="flex-2">
+                        <button class="btn btn-small" onclick="saveBudget()">💰</button>
+                    </div>
+                    <div id="budget-settings-list" class="item-list"></div>
+                </div>
+
                 <!-- Xuất CSV -->
                 <div class="settings-section">
                     <h3>📤 Xuất Dữ Liệu</h3>
@@ -237,8 +352,8 @@
                 <span class="nav-label">Báo Cáo</span>
             </button>
             <button class="nav-item" data-tab="savings" onclick="switchTab('savings', this)">
-                <span class="nav-icon">🎯</span>
-                <span class="nav-label">Tiết Kiệm</span>
+                <span class="nav-icon">💼</span>
+                <span class="nav-label">Tài Sản</span>
             </button>
             <button class="nav-item" data-tab="settings" onclick="switchTab('settings', this)">
                 <span class="nav-icon">⚙️</span>
