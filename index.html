@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#667eea">
     <meta name="description" content="Ứng dụng quản lý tài chính cá nhân - Thu Chi & Tiết Kiệm">
 
@@ -19,11 +21,13 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <title>Quản Lý Tài Chính</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- ==================== AUTH SCREEN ==================== -->
     <div id="auth-screen" class="screen active">
@@ -42,7 +46,6 @@
                     <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
                 </div>
                 <button id="btn-signin" class="btn btn-primary btn-full" onclick="handleSignIn()">Đăng Nhập</button>
-                <button id="btn-signup" class="btn btn-outline btn-full" onclick="handleSignUp()">Tạo Tài Khoản Mới</button>
                 <p id="auth-error" class="auth-error"></p>
             </div>
         </div>
@@ -98,7 +101,8 @@
                 <h2>Thêm Giao Dịch</h2>
                 <div class="form-card">
                     <div class="segmented-control">
-                        <button class="seg-btn active" data-value="Chi" onclick="setTransactionType(this)">💸 Chi</button>
+                        <button class="seg-btn active" data-value="Chi" onclick="setTransactionType(this)">💸
+                            Chi</button>
                         <button class="seg-btn" data-value="Thu" onclick="setTransactionType(this)">💰 Thu</button>
                     </div>
                     <input type="hidden" id="add-type" value="Chi">
@@ -158,7 +162,8 @@
                 <div class="form-card compact">
                     <div class="input-row">
                         <input type="text" id="goal-name" placeholder="Tên mục tiêu" class="flex-2">
-                        <input type="number" id="goal-target" placeholder="Mục tiêu (VNĐ)" inputmode="numeric" class="flex-2">
+                        <input type="number" id="goal-target" placeholder="Mục tiêu (VNĐ)" inputmode="numeric"
+                            class="flex-2">
                     </div>
                     <div class="input-row">
                         <input type="date" id="goal-deadline" class="flex-2">
@@ -257,8 +262,9 @@
     <!-- Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
+            navigator.serviceWorker.register('sw.js').catch(() => { });
         }
     </script>
 </body>
+
 </html>
