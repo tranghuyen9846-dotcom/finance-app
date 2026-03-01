@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Ứng dụng quản lý tài chính cá nhân - Thu Chi & Tiết Kiệm">
+
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tài Chính">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <title>Quản Lý Tài Chính</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ==================== AUTH SCREEN ==================== -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-logo">💰</div>
+            <h1 class="auth-title">Tài Chính Cá Nhân</h1>
+            <p class="auth-subtitle">Quản lý thu chi & tiết kiệm thông minh</p>
+
+            <div class="auth-form">
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+                <div class="input-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button id="btn-signin" class="btn btn-primary btn-full" onclick="handleSignIn()">Đăng Nhập</button>
+                <button id="btn-signup" class="btn btn-outline btn-full" onclick="handleSignUp()">Tạo Tài Khoản Mới</button>
+                <p id="auth-error" class="auth-error"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div id="app-screen" class="screen">
+        <!-- Header -->
+        <header class="app-header">
+            <h1 class="header-title">💰 Tài Chính</h1>
+            <div class="header-actions">
+                <span id="user-email" class="user-email"></span>
+            </div>
+        </header>
+
+        <!-- Tab Contents -->
+        <main class="app-content">
+            <!-- TAB 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content active">
+                <div class="section-header">
+                    <h2>Tổng Quan</h2>
+                    <div class="filter-group">
+                        <select id="dash-month" class="select-mini" onchange="refreshDashboard()"></select>
+                        <select id="dash-year" class="select-mini" onchange="refreshDashboard()"></select>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card kpi-income">
+                        <span class="kpi-label">Thu Nhập</span>
+                        <span id="kpi-income" class="kpi-value">0 đ</span>
+                    </div>
+                    <div class="kpi-card kpi-expense">
+                        <span class="kpi-label">Chi Tiêu</span>
+                        <span id="kpi-expense" class="kpi-value">0 đ</span>
+                    </div>
+                    <div class="kpi-card kpi-balance">
+                        <span class="kpi-label">Số Dư</span>
+                        <span id="kpi-balance" class="kpi-value">0 đ</span>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <h3 class="section-subtitle">Giao Dịch Gần Đây</h3>
+                <div id="recent-transactions" class="transaction-list">
+                    <p class="empty-state">Đang tải...</p>
+                </div>
+            </section>
+
+            <!-- TAB 2: ADD TRANSACTION -->
+            <section id="tab-add" class="tab-content">
+                <h2>Thêm Giao Dịch</h2>
+                <div class="form-card">
+                    <div class="segmented-control">
+                        <button class="seg-btn active" data-value="Chi" onclick="setTransactionType(this)">💸 Chi</button>
+                        <button class="seg-btn" data-value="Thu" onclick="setTransactionType(this)">💰 Thu</button>
+                    </div>
+                    <input type="hidden" id="add-type" value="Chi">
+
+                    <div class="input-group">
+                        <label>Số tiền (VNĐ)</label>
+                        <input type="number" id="add-amount" placeholder="150,000" inputmode="numeric">
+                    </div>
+                    <div class="input-group">
+                        <label>Danh mục</label>
+                        <select id="add-category" class="select-full"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Tài khoản</label>
+                        <select id="add-account" class="select-full"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Ghi chú (tuỳ chọn)</label>
+                        <input type="text" id="add-note" placeholder="VD: Ăn trưa với bạn">
+                    </div>
+                    <div class="input-group">
+                        <label>Ngày</label>
+                        <input type="date" id="add-date">
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="submitTransaction()">
+                        ✅ Xác Nhận Thêm
+                    </button>
+                    <p id="add-result" class="result-msg"></p>
+                </div>
+            </section>
+
+            <!-- TAB 3: REPORTS -->
+            <section id="tab-report" class="tab-content">
+                <div class="section-header">
+                    <h2>Báo Cáo</h2>
+                    <div class="filter-group">
+                        <select id="rpt-month" class="select-mini" onchange="refreshReports()"></select>
+                        <select id="rpt-year" class="select-mini" onchange="refreshReports()"></select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3>Chi Tiêu Theo Danh Mục</h3>
+                        <canvas id="pie-chart"></canvas>
+                        <p id="pie-empty" class="empty-state" style="display:none;">Chưa có dữ liệu</p>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Thu vs Chi Theo Tháng</h3>
+                        <canvas id="bar-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: SAVINGS -->
+            <section id="tab-savings" class="tab-content">
+                <h2>Mục Tiêu Tiết Kiệm</h2>
+                <div class="form-card compact">
+                    <div class="input-row">
+                        <input type="text" id="goal-name" placeholder="Tên mục tiêu" class="flex-2">
+                        <input type="number" id="goal-target" placeholder="Mục tiêu (VNĐ)" inputmode="numeric" class="flex-2">
+                    </div>
+                    <div class="input-row">
+                        <input type="date" id="goal-deadline" class="flex-2">
+                        <button class="btn btn-primary flex-1" onclick="addGoal()">🎯 Tạo</button>
+                    </div>
+                </div>
+                <div id="goals-list" class="goals-list">
+                    <p class="empty-state">Đang tải...</p>
+                </div>
+            </section>
+
+            <!-- TAB 5: SETTINGS -->
+            <section id="tab-settings" class="tab-content">
+                <h2>Cài Đặt</h2>
+
+                <!-- Danh mục -->
+                <div class="settings-section">
+                    <h3>📁 Danh Mục</h3>
+                    <div class="input-row">
+                        <input type="text" id="new-cat-name" placeholder="Tên danh mục" class="flex-2">
+                        <select id="new-cat-type" class="flex-1">
+                            <option value="Chi">Chi</option>
+                            <option value="Thu">Thu</option>
+                        </select>
+                        <button class="btn btn-small" onclick="addCat()">➕</button>
+                    </div>
+                    <div id="cat-list" class="item-list"></div>
+                </div>
+
+                <!-- Tài khoản -->
+                <div class="settings-section">
+                    <h3>🏦 Tài Khoản</h3>
+                    <div class="input-row">
+                        <input type="text" id="new-acc-name" placeholder="Tên tài khoản" class="flex-2">
+                        <select id="new-acc-type" class="flex-1">
+                            <option>Tiền mặt</option>
+                            <option>Ngân hàng</option>
+                            <option>Ví điện tử</option>
+                            <option>Thẻ tín dụng</option>
+                        </select>
+                        <button class="btn btn-small" onclick="addAcc()">➕</button>
+                    </div>
+                    <div id="acc-list" class="item-list"></div>
+                </div>
+
+                <!-- Xuất CSV -->
+                <div class="settings-section">
+                    <h3>📤 Xuất Dữ Liệu</h3>
+                    <button class="btn btn-outline btn-full" onclick="handleExportCSV()">💾 Xuất CSV</button>
+                </div>
+
+                <!-- Đăng xuất -->
+                <div class="settings-section">
+                    <button class="btn btn-danger btn-full" onclick="handleSignOut()">🚪 Đăng Xuất</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard', this)">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Tổng Quan</span>
+            </button>
+            <button class="nav-item" data-tab="add" onclick="switchTab('add', this)">
+                <span class="nav-icon add-icon">➕</span>
+                <span class="nav-label">Thêm</span>
+            </button>
+            <button class="nav-item" data-tab="report" onclick="switchTab('report', this)">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Báo Cáo</span>
+            </button>
+            <button class="nav-item" data-tab="savings" onclick="switchTab('savings', this)">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-label">Tiết Kiệm</span>
+            </button>
+            <button class="nav-item" data-tab="settings" onclick="switchTab('settings', this)">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Cài Đặt</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="db.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>

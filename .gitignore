@@ -1,0 +1,13 @@
+# Python files (phiên bản PC cũ)
+*.pyc
+__pycache__/
+finance.db
+*.csv
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
