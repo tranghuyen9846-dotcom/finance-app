@@ -57,9 +57,10 @@ async function handleSignIn() {
         errorEl.textContent = '';
         await signIn(email, password);
     } catch (err) {
+        console.error('Login error:', err);
         errorEl.textContent = err.message === 'Invalid login credentials'
             ? 'Email hoặc mật khẩu không đúng!'
-            : err.message;
+            : `Lỗi: ${err.message || err.status || JSON.stringify(err)}`;
     } finally {
         showLoading(false);
     }

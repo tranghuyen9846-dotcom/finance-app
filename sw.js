@@ -3,7 +3,7 @@
  * Cache offline: HTML, CSS, JS, Fonts, CDN libs
  */
 
-const CACHE_NAME = 'finance-pwa-v2';
+const CACHE_NAME = 'finance-pwa-v3';
 
 const ASSETS_TO_CACHE = [
     '/',
@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
     '/manifest.json',
     '/icons/icon-192.png',
     '/icons/icon-512.png',
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
     'https://cdn.jsdelivr.net/npm/chart.js@4',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
 ];
