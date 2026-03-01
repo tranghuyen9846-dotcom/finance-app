@@ -3,7 +3,7 @@
  * Cache offline: HTML, CSS, JS, Fonts, CDN libs
  */
 
-const CACHE_NAME = 'finance-pwa-v3';
+const CACHE_NAME = 'finance-pwa-v4';
 
 const ASSETS_TO_CACHE = [
     '/',

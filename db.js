@@ -9,13 +9,13 @@
 const SUPABASE_URL = 'https://lapgqwznjveuqhizvstc.supabase.co';      // VD: https://xxxxx.supabase.co
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxhcGdxd3puanZldXFoaXp2c3RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTQzMTAsImV4cCI6MjA4Nzg5MDMxMH0.m6dwSe4NKVeEf8Bk4PoxqgJ9RktzW_SBnOlWbEnrD6g';
 
-let supabase = null;
+let _sb = null;
 
 function initSupabase() {
-    if (!supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (!_sb) {
+        _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     }
-    return supabase;
+    return _sb;
 }
 
 // ============================================================
